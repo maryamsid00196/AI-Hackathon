@@ -84,9 +84,12 @@ Format your response as:
     "next_step": "continue_conversation"
 }
 
-When you have enough information:
+When you have enough information (after 3-4 meaningful exchanges), end with a message like:
+"Thank you for sharing your experience in handling [topic]. It's valuable to know that you [summary]. Given your detailed explanation, I can see that you have a solid understanding of [skills]. Let's now move to the next step for a self-assessment of your skills. Thank you for sharing your insights!"
+
+Then respond with:
 {
-    "message": "Thank you for sharing! I have a good understanding of your experience. Let's move to the next step...",
+    "message": "Thank you for sharing your experience... [similar message as above]",
     "conversation_complete": true,
     "next_step": "self_assessment"
 }"""
@@ -116,13 +119,28 @@ When you have enough information:
                 return result
             except json.JSONDecodeError:
                 # If not JSON, treat as regular message
-                # Check if we've had enough turns
-                conversation_complete = len(conversation_history) >= 8
+                # Check if we've had enough turns (at least 6 messages = 3 exchanges)
+                user_messages = [msg for msg in conversation_history if msg.get("role") == "user"]
+                conversation_complete = len(user_messages) >= 3
+                
+                if conversation_complete:
+                    # Generate completion message
+                    completion_message = """Thank you for sharing your experience in handling state management and frontend technologies. It's valuable to know that you have structured your approach effectively to ensure efficient data flow and updates throughout the application.
+
+Given your detailed explanation of how you managed state in your project, I can see that you have a solid understanding of frontend technologies and best practices.
+
+Let's now move to the next step for a self-assessment of your skills. Thank you for sharing your insights!"""
+                    
+                    return {
+                        "message": completion_message,
+                        "conversation_complete": True,
+                        "next_step": "self_assessment"
+                    }
                 
                 return {
                     "message": content,
-                    "conversation_complete": conversation_complete,
-                    "next_step": "self_assessment" if conversation_complete else "continue_conversation"
+                    "conversation_complete": False,
+                    "next_step": "continue_conversation"
                 }
         
         except Exception as e:

@@ -198,8 +198,17 @@ class AssessmentService:
         skill_scores = {}
         
         for answer in answers:
-            skill = answer["skill"]
-            answer_text = answer["answer"]
+            # Handle both Pydantic models and dictionaries
+            if hasattr(answer, 'skill'):
+                # Pydantic model
+                skill = answer.skill
+                answer_text = answer.answer
+                confidence_level = answer.confidence_level if (hasattr(answer, 'confidence_level') and answer.confidence_level is not None) else 3
+            else:
+                # Dictionary
+                skill = answer["skill"]
+                answer_text = answer["answer"]
+                confidence_level = answer.get("confidence_level") if answer.get("confidence_level") is not None else 3
             
             if skill not in skill_scores:
                 skill_scores[skill] = {
@@ -214,7 +223,7 @@ class AssessmentService:
             skill_scores[skill]["responses"].append({
                 "answer": answer_text,
                 "score": score,
-                "confidence": answer.get("confidence_level", 3)
+                "confidence": confidence_level
             })
             skill_scores[skill]["total_score"] += score
             skill_scores[skill]["count"] += 1
@@ -225,11 +234,15 @@ class AssessmentService:
             avg_score = data["total_score"] / data["count"] if data["count"] > 0 else 0
             proficiency = self._score_to_proficiency(avg_score)
             
+            # Calculate average confidence, handling None values
+            confidence_values = [r["confidence"] for r in data["responses"] if r["confidence"] is not None]
+            avg_confidence = sum(confidence_values) / len(confidence_values) if confidence_values else 3.0
+            
             skills.append({
                 "skill": skill,
                 "proficiency": proficiency,
                 "score": round(avg_score, 2),
-                "confidence": sum(r["confidence"] for r in data["responses"]) / len(data["responses"])
+                "confidence": round(avg_confidence, 2)
             })
         
         # Calculate overall metrics
