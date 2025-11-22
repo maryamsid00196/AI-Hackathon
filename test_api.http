@@ -1,0 +1,100 @@
+### Skill Assessment API Test File
+### Use this with REST Client extension in VS Code or similar tools
+
+@baseUrl = http://localhost:8000
+@contentType = application/json
+
+### Health Check
+GET {{baseUrl}}/
+Accept: application/json
+
+###
+
+### Start New Session
+# @name startSession
+POST {{baseUrl}}/api/session/start
+Content-Type: {{contentType}}
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "current_level": "Junior",
+  "target_level": "Senior",
+  "years_of_experience": 2.5,
+  "primary_technologies": ["React", "JavaScript", "CSS", "HTML", "Git"],
+  "additional_info": "Worked on e-commerce and dashboard projects"
+}
+
+###
+
+### Continue Conversation (replace {session_id} with actual ID from previous response)
+@sessionId = replace-with-actual-session-id
+
+POST {{baseUrl}}/api/conversation/{{sessionId}}
+Content-Type: {{contentType}}
+
+{
+  "message": "I recently worked on a React e-commerce application where I built the product listing, shopping cart, and checkout features. I used Redux for state management and integrated with Stripe API for payments."
+}
+
+###
+
+### Get Conversation History
+GET {{baseUrl}}/api/conversation/{{sessionId}}/history
+Accept: application/json
+
+###
+
+### Get Self-Assessment Test
+GET {{baseUrl}}/api/assessment/test/{{sessionId}}
+Accept: application/json
+
+###
+
+### Submit Self-Assessment
+POST {{baseUrl}}/api/assessment/submit/{{sessionId}}
+Content-Type: {{contentType}}
+
+{
+  "answers": [
+    {
+      "question_id": "replace-with-actual-question-id",
+      "skill": "React",
+      "answer": "Intermediate",
+      "confidence_level": 4
+    },
+    {
+      "question_id": "replace-with-actual-question-id",
+      "skill": "JavaScript",
+      "answer": "Advanced",
+      "confidence_level": 4
+    }
+  ]
+}
+
+###
+
+### Generate Gap Analysis Report
+POST {{baseUrl}}/api/gap-analysis/{{sessionId}}
+Accept: application/json
+
+###
+
+### Get Session Data
+GET {{baseUrl}}/api/session/{{sessionId}}
+Accept: application/json
+
+###
+
+### List All Sessions (Admin)
+GET {{baseUrl}}/api/sessions
+Accept: application/json
+
+###
+
+### Delete Session
+DELETE {{baseUrl}}/api/session/{{sessionId}}
+Accept: application/json
+
+###
+
