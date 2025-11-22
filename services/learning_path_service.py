@@ -180,47 +180,68 @@ class LearningPathService:
         milestone_num: int,
         role: str
     ) -> List[Dict[str, Any]]:
-        """Generate parts (lesson, quiz, challenge, practice) for a milestone"""
+        """Generate parts (lesson, quiz, challenge, flashcards, summary) for a milestone with placeholders"""
         parts = []
         
-        # Lesson
+        # Lesson - placeholder (content generated on-demand)
         parts.append({
             "type": "lesson",
             "title": f"{skill_name} Lesson {milestone_num}",
             "description": f"Interactive lesson covering key concepts for milestone {milestone_num}",
-            "duration": "45-60 minutes",
+            "duration": "15 minutes",
             "xp": 50,
-            "completed": False
+            "completed": False,
+            "content_generated": False,  # Flag for lazy loading
+            "content_id": f"{skill_name.lower().replace(' ', '_')}_lesson_{milestone_num}"
         })
         
-        # Quiz
+        # Quiz - placeholder
         parts.append({
             "type": "quiz",
             "title": f"{skill_name} Knowledge Check {milestone_num}",
-            "description": f"Test your understanding with {milestone_num * 5} questions",
-            "duration": "15-20 minutes",
+            "description": f"Test your understanding with scenario-based questions",
+            "duration": "10 minutes",
             "xp": 30,
-            "completed": False
+            "passing_score": 70,
+            "completed": False,
+            "content_generated": False,
+            "content_id": f"{skill_name.lower().replace(' ', '_')}_quiz_{milestone_num}"
         })
         
-        # Challenge
+        # Coding Challenge - placeholder
         parts.append({
-            "type": "challenge",
+            "type": "coding_challenge",
             "title": f"{skill_name} Challenge {milestone_num}",
             "description": f"Hands-on coding challenge to apply what you've learned",
-            "duration": "1-2 hours",
-            "xp": 75,
-            "completed": False
+            "duration": "30 minutes",
+            "xp": 100,
+            "completed": False,
+            "content_generated": False,
+            "content_id": f"{skill_name.lower().replace(' ', '_')}_challenge_{milestone_num}"
         })
         
-        # Practice
+        # Flashcards - placeholder
         parts.append({
-            "type": "practice",
-            "title": f"{skill_name} Practice Session {milestone_num}",
-            "description": f"Guided practice exercises to reinforce concepts",
-            "duration": "30-45 minutes",
+            "type": "flashcards",
+            "title": f"{skill_name} Flashcards {milestone_num}",
+            "description": f"Review key concepts with interactive flashcards",
+            "duration": "5 minutes",
+            "xp": 20,
+            "completed": False,
+            "content_generated": False,
+            "content_id": f"{skill_name.lower().replace(' ', '_')}_flashcards_{milestone_num}"
+        })
+        
+        # Summary - placeholder
+        parts.append({
+            "type": "summary",
+            "title": f"{skill_name} Summary {milestone_num}",
+            "description": f"Key takeaways and next steps for this milestone",
+            "duration": "5 minutes",
             "xp": 25,
-            "completed": False
+            "completed": False,
+            "content_generated": False,
+            "content_id": f"{skill_name.lower().replace(' ', '_')}_summary_{milestone_num}"
         })
         
         return parts
