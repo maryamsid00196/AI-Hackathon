@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional
@@ -12,6 +12,7 @@ from models import (
 from services.openai_service import OpenAIService
 from services.assessment_service import AssessmentService
 from services.gap_analysis_service import GapAnalysisService
+from services.learning_path_service import LearningPathService
 
 app = FastAPI(
     title="Skill Assessment API",
@@ -32,6 +33,7 @@ app.add_middleware(
 openai_service = OpenAIService()
 assessment_service = AssessmentService()
 gap_analysis_service = GapAnalysisService()
+learning_path_service = LearningPathService()
 
 # In-memory storage (replace with database in production)
 sessions = {}
@@ -232,6 +234,62 @@ async def generate_gap_analysis(session_id: str):
     session["status"] = "complete"
     
     return gap_analysis
+
+
+@app.post("/api/learning-path/{session_id}")
+async def generate_learning_path(session_id: str, request: Dict = Body(default={})):
+    """
+    Generate personalized learning paths based on gap analysis
+    
+    Expects gap analysis to be completed first.
+    Request body can optionally include role: {"role": "Frontend Engineer"}
+    Returns learning paths for skills that need improvement.
+    """
+    if session_id not in sessions:
+        raise HTTPException(status_code=404, detail="Session not found")
+    
+    session = sessions[session_id]
+    
+    if not session.get("gap_analysis"):
+        raise HTTPException(
+            status_code=400,
+            detail="Complete gap analysis first"
+        )
+    
+    gap_analysis = session["gap_analysis"]
+    
+    # Get role from request body, or default to "Frontend Engineer"
+    role = request.get("role", "Frontend Engineer") if request else "Frontend Engineer"
+    
+    # Extract skill ratings from gap analysis
+    skill_ratings = []
+    
+    # Add skills with gaps
+    for skill_gap in gap_analysis.get("skill_gaps", []):
+        skill_ratings.append({
+            "skill_name": skill_gap.get("skill"),
+            "current_level": skill_gap.get("current_level", "Basic")
+        })
+    
+    # Add skills that need improvement
+    for skill in gap_analysis.get("skills_need_improvement", []):
+        # Check if already added
+        if not any(sr["skill_name"] == skill for sr in skill_ratings):
+            skill_ratings.append({
+                "skill_name": skill,
+                "current_level": "Intermediate"  # Default, could be improved
+            })
+    
+    # Generate learning paths
+    learning_paths = learning_path_service.generate_learning_paths(
+        role=role,
+        skill_ratings=skill_ratings
+    )
+    
+    # Store learning paths in session
+    session["learning_paths"] = learning_paths
+    
+    return learning_paths
 
 
 @app.get("/api/session/{session_id}")
